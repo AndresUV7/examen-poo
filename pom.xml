@@ -5,4 +5,12 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>examen-poo</name>
   <description>Examen POO</description>
+  <dependencies>
+    <dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.34</version>
+			<scope>provided</scope>
+		</dependency>
+  </dependencies>
 </project>
