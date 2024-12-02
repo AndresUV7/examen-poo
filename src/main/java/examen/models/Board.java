@@ -2,12 +2,12 @@ package examen.models;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 // Implementa el patrón builder
 @Builder
@@ -119,13 +119,22 @@ public class Board {
      * Podría extenderse para proporcionar una representación más detallada.
      */
     public void printBoard() {
-        Arrays.stream(boxes)
-                .forEach(row -> {
-                    Arrays.stream(row)
+        // Generar etiquetas de columnas (números)
+        String columnLabels = IntStream.range(1, columns + 1)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(" ", "  ", "\n"));
+        System.out.print(columnLabels);
+
+        // Imprimir tablero con etiquetas de filas (letras)
+        IntStream.range(0, rows)
+                .mapToObj(row -> {
+                    // Convertir cada fila a su representación con etiqueta de fila
+                    String rowRepresentation = Arrays.stream(boxes[row])
                             .map(this::getBoxRepresentation)
-                            .forEach(repr -> System.out.print(repr + " "));
-                    System.out.println();
-                });
+                            .collect(Collectors.joining(" "));
+                    return String.format("%c %s\n", 'A' + row, rowRepresentation);
+                })
+                .forEach(System.out::print);
     }
 
     private String getBoxRepresentation(Box box) {
@@ -141,14 +150,24 @@ public class Board {
      * Imprime el estado del tablero con representación de minas y casillas.
      */
     public void printBoardAux() {
-        Arrays.stream(boxes)
-                .forEach(row -> {
-                    Arrays.stream(row)
+        // Generar etiquetas de columnas (números)
+        String columnLabels = IntStream.range(1, columns + 1)
+                .mapToObj(String::valueOf)
+                .collect(Collectors.joining(" ", "  ", "\n"));
+        System.out.print(columnLabels);
+    
+        // Imprimir tablero con etiquetas de filas (letras)
+        IntStream.range(0, rows)
+                .mapToObj(row -> {
+                    // Convertir cada fila a su representación detallada con etiqueta de fila
+                    String rowRepresentation = Arrays.stream(boxes[row])
                             .map(this::getDetailedBoxRepresentation)
-                            .forEach(repr -> System.out.print(repr + " "));
-                    System.out.println();
-                });
+                            .collect(Collectors.joining(" "));
+                    return String.format("%c %s\n", 'A' + row, rowRepresentation);
+                })
+                .forEach(System.out::print);
     }
+    
 
     /**
      * Obtiene una representación detallada de la casilla.
