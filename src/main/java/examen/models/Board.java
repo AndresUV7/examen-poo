@@ -71,7 +71,7 @@ public class Board {
     /**
      * Inicializa el tablero con casilleros vacías.
      */
-    private void initializeEmptyBoard() {
+    public void initializeEmptyBoard() {
         boxes = IntStream.range(0, rows)
                 .mapToObj(i -> IntStream.range(0, columns)
                         .mapToObj(j -> {
@@ -139,7 +139,7 @@ public class Board {
 
     private String getBoxRepresentation(Box box) {
         if (box.isRevealed()) {
-            return box instanceof MinedBox ? "*" : String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
+            return box instanceof MinedBox ? "X" : String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
         } else if (box.isFlagged()) {
             return "F";
         }
@@ -155,7 +155,7 @@ public class Board {
                 .mapToObj(String::valueOf)
                 .collect(Collectors.joining(" ", "  ", "\n"));
         System.out.print(columnLabels);
-    
+
         // Imprimir tablero con etiquetas de filas (letras)
         IntStream.range(0, rows)
                 .mapToObj(row -> {
@@ -167,7 +167,6 @@ public class Board {
                 })
                 .forEach(System.out::print);
     }
-    
 
     /**
      * Obtiene una representación detallada de la casilla.
@@ -251,4 +250,44 @@ public class Board {
     private boolean isValidPosition(int row, int col) {
         return row >= 0 && row < rows && col >= 0 && col < columns;
     }
+
+    /**
+     * Revela una casilla y todas las casillas vacías adyacentes recursivamente.
+     * Si una casilla tiene minas adyacentes, muestra el número correspondiente y
+     * detiene el revelado en esa rama.
+     *
+     * @param row Fila de la casilla a revelar
+     * @param col Columna de la casilla a revelar
+     */
+    public void revealAdjacent(int row, int col) {
+        if (!isValidPosition(row, col))
+            return; // Fuera de los límites del tablero
+        Box box = boxes[row][col];
+
+        // Si ya está revelada o marcada con una bandera, no hacer nada
+        if (box.isRevealed() || box.isFlagged())
+            return;
+
+        box.reveal(); // Revelar la casilla actual
+
+        // Si es una casilla vacía con minas adyacentes, detener el revelado aquí
+        if (box instanceof EmptyBox && ((EmptyBox) box).getAdjacentMinesCount() > 0) {
+            return;
+        }
+
+        // Si es una casilla vacía sin minas adyacentes, continuar con el revelado en
+        // las 8 direcciones
+        int[][] directions = {
+                { -1, -1 }, { -1, 0 }, { -1, 1 },
+                { 0, -1 }, { 0, 1 },
+                { 1, -1 }, { 1, 0 }, { 1, 1 }
+        };
+
+        for (int[] direction : directions) {
+            int newRow = row + direction[0];
+            int newCol = col + direction[1];
+            revealAdjacent(newRow, newCol); // Llamada recursiva
+        }
+    }
+
 }
