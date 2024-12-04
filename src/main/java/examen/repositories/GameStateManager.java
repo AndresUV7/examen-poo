@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 package examen.repositories;
-=======
-package examen.repositores;
->>>>>>> 0700d6d94a5e110a2c5a78c8a5dd44d479240044
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
@@ -85,11 +81,7 @@ public class GameStateManager {
 
             writer.writeAll(boardState);
         } catch (IOException e) {
-<<<<<<< HEAD
             System.err.println("**** Error al guardar el estado del juego: ****" + e.getMessage());
-=======
-            System.err.println("Error al guardar el estado del juego: " + e.getMessage());
->>>>>>> 0700d6d94a5e110a2c5a78c8a5dd44d479240044
         }
     }
 
@@ -170,11 +162,7 @@ public class GameStateManager {
                                 emptyBox.reveal();
                                 board.getBoxes()[boardRow][boardCol] = emptyBox;
                             } catch (NumberFormatException e) {
-<<<<<<< HEAD
                                 System.err.println("**** Error al analizar minas adyacentes: ****" + cellData);
-=======
-                                System.err.println("Error al analizar minas adyacentes: " + cellData);
->>>>>>> 0700d6d94a5e110a2c5a78c8a5dd44d479240044
                             }
                     }
                 }
@@ -185,11 +173,7 @@ public class GameStateManager {
     
             return new BoardLoadResult(board, flagCount);
         } catch (IOException | CsvException e) {
-<<<<<<< HEAD
             System.out.println("**** No se encontró estado de juego guardado o hubo un error al cargarlo. ****");
-=======
-            System.out.println("No se encontró estado de juego guardado o hubo un error al cargarlo.");
->>>>>>> 0700d6d94a5e110a2c5a78c8a5dd44d479240044
             return null;
         }
     }
@@ -199,11 +183,7 @@ public class GameStateManager {
         try {
             java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(GAME_STATE_FILEPATH));
         } catch (IOException e) {
-<<<<<<< HEAD
             System.err.println(" **** Error al eliminar el estado del juego: ****" + e.getMessage());
-=======
-            System.err.println("Error al eliminar el estado del juego: " + e.getMessage());
->>>>>>> 0700d6d94a5e110a2c5a78c8a5dd44d479240044
         }
     }
 
