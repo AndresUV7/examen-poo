@@ -2,18 +2,14 @@ package examen.models;
 
 import java.util.Arrays;
 import java.util.Random;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-// Implementa el patrón builder
 @Builder
-// Genera getters, setters, toString, etc.
 @Data
-// Genera un constructor con todos los atributos
 @AllArgsConstructor
 public class Board {
     private int rows;
@@ -21,12 +17,12 @@ public class Board {
     private int totalMines;
     private Box[][] boxes;
 
-    // Inyección de dependencia de Random para mejor capacidad de prueba
-
     @Builder.Default
     private final Random random = new Random();
 
-    // Si quieres permitir inyectar un Random específico en el builder
+    @Builder.Default
+    private int flagCount = 0;
+
     public Board(Integer rows, Integer columns, Integer totalMines, Box[][] boxes, Random random) {
         this.rows = rows;
         this.columns = columns;
@@ -37,18 +33,11 @@ public class Board {
 
     /**
      * Genera el tablero del juego con minas colocadas aleatoriamente.
-     * Sigue el Principio Abierto/Cerrado permitiendo posibles sobrescrituras.
      */
     public void generateBoard() {
-        // Validar entrada
         validateBoardParameters();
-
-        // Inicializar el tablero con casilleros vacías
         initializeEmptyBoard();
-
-        // Colocar minas aleatoriamente
         placeMines();
-
         calculateAdjacentMines();
     }
 
@@ -106,91 +95,7 @@ public class Board {
     }
 
     /**
-     * Revela todas las casilleros del tablero (para depuración o final del juego).
-     */
-    public void revealAllBoxes() {
-        Arrays.stream(boxes)
-                .flatMap(Arrays::stream)
-                .forEach(Box::reveal);
-    }
-
-    /**
-     * Imprime el estado actual del tablero.
-     * Podría extenderse para proporcionar una representación más detallada.
-     */
-    public void printBoard() {
-        // Generar etiquetas de columnas (números)
-        String columnLabels = IntStream.range(1, columns + 1)
-                .mapToObj(String::valueOf)
-                .collect(Collectors.joining(" ", "  ", "\n"));
-        System.out.print(columnLabels);
-
-        // Imprimir tablero con etiquetas de filas (letras)
-        IntStream.range(0, rows)
-                .mapToObj(row -> {
-                    // Convertir cada fila a su representación con etiqueta de fila
-                    String rowRepresentation = Arrays.stream(boxes[row])
-                            .map(this::getBoxRepresentation)
-                            .collect(Collectors.joining(" "));
-                    return String.format("%c %s\n", 'A' + row, rowRepresentation);
-                })
-                .forEach(System.out::print);
-    }
-
-    private String getBoxRepresentation(Box box) {
-        if (box.isRevealed()) {
-            return box instanceof MinedBox ? "X" : String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
-        } else if (box.isFlagged()) {
-            return "F";
-        }
-        return "?";
-    }
-
-    /**
-     * Imprime el estado del tablero con representación de minas y casillas.
-     */
-    public void printBoardAux() {
-        // Generar etiquetas de columnas (números)
-        String columnLabels = IntStream.range(1, columns + 1)
-                .mapToObj(String::valueOf)
-                .collect(Collectors.joining(" ", "  ", "\n"));
-        System.out.print(columnLabels);
-
-        // Imprimir tablero con etiquetas de filas (letras)
-        IntStream.range(0, rows)
-                .mapToObj(row -> {
-                    // Convertir cada fila a su representación detallada con etiqueta de fila
-                    String rowRepresentation = Arrays.stream(boxes[row])
-                            .map(this::getDetailedBoxRepresentation)
-                            .collect(Collectors.joining(" "));
-                    return String.format("%c %s\n", 'A' + row, rowRepresentation);
-                })
-                .forEach(System.out::print);
-    }
-
-    /**
-     * Obtiene una representación detallada de la casilla.
-     * 
-     * @param box La casilla a representar
-     * @return Representación de la casilla
-     */
-    private String getDetailedBoxRepresentation(Box box) {
-        if (box.isRevealed()) {
-            if (box instanceof MinedBox) {
-                return "X"; // Mina revelada
-            } else {
-                return String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
-            }
-        } else if (box.isFlagged()) {
-            return "F"; // Casilla marcada
-        }
-        return "?"; // Casilla no revelada
-    }
-
-    /**
      * Calcula el número de minas adyacentes para cada casilla vacía del tablero.
-     * Recorre todas las casillas y establece el conteo de minas adyacentes para las
-     * casillas no minadas.
      */
     public void calculateAdjacentMines() {
         IntStream.range(0, rows)
@@ -247,7 +152,7 @@ public class Board {
      * @param col Columna a verificar
      * @return true si la posición es válida, false en caso contrario
      */
-    private boolean isValidPosition(int row, int col) {
+    public boolean isValidPosition(int row, int col) {
         return row >= 0 && row < rows && col >= 0 && col < columns;
     }
 
@@ -262,36 +167,82 @@ public class Board {
     public int revealAdjacent(int row, int col) {
         if (!isValidPosition(row, col))
             return 0;
-    
+
         Box box = boxes[row][col];
-    
+
         if (box.isRevealed())
             return 0;
-    
+
         int flagsRemoved = 0;
         if (box.isFlagged()) {
             box.setFlagged(false);
             flagsRemoved++;
         }
-    
+
         box.reveal();
-    
+
         if (box instanceof EmptyBox && ((EmptyBox) box).getAdjacentMinesCount() > 0) {
             return flagsRemoved;
         }
-    
+
         int[][] directions = {
                 { -1, -1 }, { -1, 0 }, { -1, 1 },
                 { 0, -1 }, { 0, 1 },
                 { 1, -1 }, { 1, 0 }, { 1, 1 }
         };
-    
+
         for (int[] direction : directions) {
             int newRow = row + direction[0];
             int newCol = col + direction[1];
             flagsRemoved += revealAdjacent(newRow, newCol);
         }
-    
+
         return flagsRemoved;
     }
+
+    /**
+     * Cuenta el número de casillas marcadas con bandera en el tablero.
+     * 
+     * @return Número de casillas con bandera
+     */
+    public int getFlagCount() {
+        int flagCount = 0;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < columns; col++) {
+                if (boxes[row][col].isFlagged()) {
+                    flagCount++;
+                }
+            }
+        }
+        return flagCount;
+    }
+
+    public void increaseFlagCount() {
+        if (flagCount < totalMines) {
+            flagCount++;
+        } else {
+            throw new IllegalStateException("No puedes colocar más banderas que el número total de minas.");
+        }
+    }
+    
+    public void decreaseFlagCount() {
+        if (flagCount > 0) {
+            flagCount--;
+        } else {
+            throw new IllegalStateException("No puedes tener un conteo de banderas negativo.");
+        }
+    }
+
+    public boolean allNonMinedBoxesRevealed() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                Box box = boxes[i][j];
+                if (!box.isMine() && !box.isRevealed()) {
+                    return false; // Si hay una casilla no minada sin revelar, el juego no está ganado
+                }
+            }
+        }
+        return true; // Todas las casillas no minadas están reveladas
+    }
+    
 }
