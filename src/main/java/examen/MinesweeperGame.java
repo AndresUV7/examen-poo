@@ -5,12 +5,12 @@ import java.util.Scanner;
 import examen.models.Board;
 import examen.models.Box;
 import examen.models.MinedBox;
-import examen.repositores.GameStateManager;
+import examen.repositories.GameStateManager;
 
 public class MinesweeperGame {
 
     public static void main(String[] args) {
-        System.out.println("Bienvenido al juego de Buscaminas");
+        System.out.println("==== Bienvenido al juego de Buscaminas ====");
         Scanner scanner = new Scanner(System.in);
         boolean gameOver = false;
 
@@ -23,7 +23,7 @@ public class MinesweeperGame {
             // Cargar estado guardado
             gameBoard = loadedGame.getBoard();
             flagCount = loadedGame.getFlagCount();
-            System.out.println("Juego anterior cargado.");
+            System.out.println("==== Juego anterior cargado. ====");
         } else {
             // Pedir al usuario las dimensiones y la cantidad de minas
             System.out.println("Configura tu tablero:");
@@ -39,7 +39,7 @@ public class MinesweeperGame {
             // Validar las entradas
             while (totalMines >= rows * columns) {
                 System.out.println(
-                        "El número de minas no puede ser igual o mayor al total de casillas. Intenta de nuevo.");
+                        "**** El número de minas no puede ser igual o mayor al total de casillas. Intenta de nuevo.****");
                 System.out.print("Ingresa el número total de minas: ");
                 totalMines = scanner.nextInt();
             }
@@ -69,7 +69,7 @@ public class MinesweeperGame {
                     int[] coordsToReveal = parseCoordinates(positionToReveal);
 
                     if (coordsToReveal == null) {
-                        System.out.println("Coordenada inválida. Inténtalo de nuevo.");
+                        System.out.println("*** Coordenada inválida. Inténtalo de nuevo. ***");
                         break;
                     }
 
@@ -77,10 +77,10 @@ public class MinesweeperGame {
                     int revealCol = coordsToReveal[1];
 
                     if (gameBoard.getBoxes()[revealRow][revealCol].isRevealed()) {
-                        System.out.println("Esta casilla ya está revelada. No puedes revelarla nuevamente.");
+                        System.out.println("**** Esta casilla ya está revelada. No puedes revelarla nuevamente. ****");
                         gameBoard.printBoard();
                     } else if (gameBoard.getBoxes()[revealRow][revealCol] instanceof MinedBox) {
-                        System.out.println("¡Boom! Has pisado una mina. ¡Juego terminado!");
+                        System.out.println("==== ¡Boom! Has pisado una mina. ¡Juego terminado! ====");
                         gameBoard.revealAllBoxes(); // Revelar todo el tablero
                         gameBoard.printBoard();
                         gameOver = true;
@@ -94,7 +94,7 @@ public class MinesweeperGame {
 
                     // Verificar si el jugador ha ganado
                     if (isGameWon(gameBoard)) {
-                        System.out.println("¡Felicidades! Has ganado el juego.");
+                        System.out.println("==== ¡Felicidades! Has ganado el juego. ====");
                         gameBoard.revealAllBoxes(); // Revelar todo el tablero
                         gameBoard.printBoard(); // Mostrar el tablero final
                         gameOver = true;
@@ -108,7 +108,7 @@ public class MinesweeperGame {
                     int[] coordsToFlag = parseCoordinates(positionToFlag);
 
                     if (coordsToFlag == null) {
-                        System.out.println("Coordenada inválida. Inténtalo de nuevo.");
+                        System.out.println("*** Coordenada inválida. Inténtalo de nuevo. ***");
                         break;
                     }
 
@@ -116,22 +116,22 @@ public class MinesweeperGame {
                     int flagCol = coordsToFlag[1];
 
                     if (gameBoard.getBoxes()[flagRow][flagCol].isRevealed()) {
-                        System.out.println("No puedes marcar ni desmarcar una casilla que ya está revelada.");
+                        System.out.println("***** No puedes marcar ni desmarcar una casilla que ya está revelada. *****");
                     } else {
                         boolean isFlagged = gameBoard.getBoxes()[flagRow][flagCol].isFlagged();
                         if (isFlagged) {
                             // Si la casilla está con bandera (quitar la bandera)
                             gameBoard.getBoxes()[flagRow][flagCol].setFlagged(false);
                             flagCount--;
-                            System.out.println("La casilla ha sido desmarcada.");
+                            System.out.println("** La casilla ha sido desmarcada.**");
                         } else {
                             // Verificar si se puede añadir una nueva bandera
                             if (flagCount < gameBoard.getTotalMines()) {
                                 gameBoard.getBoxes()[flagRow][flagCol].setFlagged(true);
                                 flagCount++;
-                                System.out.println("La casilla ha sido marcada.");
+                                System.out.println("** La casilla ha sido marcada. **");
                             } else {
-                                System.out.println("Ya has usado todas tus banderas. No puedes marcar más casillas.");
+                                System.out.println("**** Ya has usado todas tus banderas. No puedes marcar más casillas. ****");
                             }
                         }
                         gameBoard.printBoard(); // Mostrar el tablero con la casilla marcada/desmarcada
@@ -140,12 +140,12 @@ public class MinesweeperGame {
                     break;
 
                 default:
-                    System.out.println("Acción inválida. Usa 'V' para revelar o 'F' para marcar/desmarcar.");
+                    System.out.println("**** Acción inválida. Usa 'V' para revelar o 'F' para marcar/desmarcar. ****");
                     break;
             }
         }
 
-        System.out.println("Gracias por jugar.");
+        System.out.println("==== Gracias por jugar. ====");
         scanner.close();
     }
 
