@@ -64,43 +64,45 @@ public class MinesweeperGame {
 
             switch (action) {
                 case "V": // Revelar casilla
-                    System.out.print("Ingresa la coordenada (Ejemplo: B3): ");
-                    String positionToReveal = scanner.nextLine();
-                    int[] coordsToReveal = parseCoordinates(positionToReveal);
-
-                    if (coordsToReveal == null) {
-                        System.out.println("*** Coordenada inválida. Inténtalo de nuevo. ***");
-                        break;
-                    }
-
-                    int revealRow = coordsToReveal[0];
-                    int revealCol = coordsToReveal[1];
-
-                    if (gameBoard.getBoxes()[revealRow][revealCol].isRevealed()) {
-                        System.out.println("**** Esta casilla ya está revelada. No puedes revelarla nuevamente. ****");
-                        gameBoard.printBoard();
-                    } else if (gameBoard.getBoxes()[revealRow][revealCol] instanceof MinedBox) {
+                System.out.print("Ingresa la coordenada (Ejemplo: B3): ");
+                String positionToReveal = scanner.nextLine();
+                int[] coordsToReveal = parseCoordinates(positionToReveal);
+            
+                if (coordsToReveal == null) {
+                    System.out.println("*** Coordenada inválida. Inténtalo de nuevo. ***");
+                    break;
+                }
+            
+                int revealRow = coordsToReveal[0];
+                int revealCol = coordsToReveal[1];
+            
+                if (gameBoard.getBoxes()[revealRow][revealCol].isRevealed()) {
+                    System.out.println("**** Esta casilla ya está revelada. No puedes revelarla nuevamente. ****");
+                    gameBoard.printBoard();
+                } else {
+                    if (gameBoard.getBoxes()[revealRow][revealCol] instanceof MinedBox) {
                         System.out.println("==== ¡Boom! Has pisado una mina. ¡Juego terminado! ====");
-                        gameBoard.revealAllBoxes(); // Revelar todo el tablero
+                        gameBoard.revealAllBoxes();
                         gameBoard.printBoard();
                         gameOver = true;
-                        GameStateManager.clearGameState(); // Limpiar estado al perder
-                        break; // Salir del bucle inmediatamente
+                        GameStateManager.clearGameState();
+                        break;
                     } else {
-                        gameBoard.revealAdjacent(revealRow, revealCol); // Revelar recursivamente
-                        gameBoard.printBoard(); // Mostrar el tablero actualizado
-                        GameStateManager.saveGameState(gameBoard, flagCount); // Guardar estado
+                        int removedFlags = gameBoard.revealAdjacent(revealRow, revealCol);
+                        flagCount -= removedFlags;
+                        gameBoard.printBoard();
+                        GameStateManager.saveGameState(gameBoard, flagCount);
                     }
-
-                    // Verificar si el jugador ha ganado
+            
                     if (isGameWon(gameBoard)) {
                         System.out.println("==== ¡Felicidades! Has ganado el juego. ====");
-                        gameBoard.revealAllBoxes(); // Revelar todo el tablero
-                        gameBoard.printBoard(); // Mostrar el tablero final
+                        gameBoard.revealAllBoxes();
+                        gameBoard.printBoard();
                         gameOver = true;
-                        GameStateManager.clearGameState(); // Limpiar estado al ganar
+                        GameStateManager.clearGameState();
                     }
-                    break;
+                }
+                break;
 
                 case "F": // Marcar o desmarcar casilla
                     System.out.print("Ingresa la coordenada para marcar/desmarcar (Ejemplo: B3): ");

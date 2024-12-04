@@ -259,35 +259,39 @@ public class Board {
      * @param row Fila de la casilla a revelar
      * @param col Columna de la casilla a revelar
      */
-    public void revealAdjacent(int row, int col) {
+    public int revealAdjacent(int row, int col) {
         if (!isValidPosition(row, col))
-            return; // Fuera de los límites del tablero
+            return 0;
+    
         Box box = boxes[row][col];
-
-        // Si ya está revelada o marcada con una bandera, no hacer nada
-        if (box.isRevealed() || box.isFlagged())
-            return;
-
-        box.reveal(); // Revelar la casilla actual
-
-        // Si es una casilla vacía con minas adyacentes, detener el revelado aquí
-        if (box instanceof EmptyBox && ((EmptyBox) box).getAdjacentMinesCount() > 0) {
-            return;
+    
+        if (box.isRevealed())
+            return 0;
+    
+        int flagsRemoved = 0;
+        if (box.isFlagged()) {
+            box.setFlagged(false);
+            flagsRemoved++;
         }
-
-        // Si es una casilla vacía sin minas adyacentes, continuar con el revelado en
-        // las 8 direcciones
+    
+        box.reveal();
+    
+        if (box instanceof EmptyBox && ((EmptyBox) box).getAdjacentMinesCount() > 0) {
+            return flagsRemoved;
+        }
+    
         int[][] directions = {
                 { -1, -1 }, { -1, 0 }, { -1, 1 },
                 { 0, -1 }, { 0, 1 },
                 { 1, -1 }, { 1, 0 }, { 1, 1 }
         };
-
+    
         for (int[] direction : directions) {
             int newRow = row + direction[0];
             int newCol = col + direction[1];
-            revealAdjacent(newRow, newCol); // Llamada recursiva
+            flagsRemoved += revealAdjacent(newRow, newCol);
         }
+    
+        return flagsRemoved;
     }
-
 }
