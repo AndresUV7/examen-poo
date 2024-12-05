@@ -5,6 +5,27 @@ import java.util.Scanner;
 public class GameView {
     private final Scanner scanner = new Scanner(System.in);
 
+    public String promptPlayerName() {
+        System.out.print("Ingresa tu nombre: ");
+        return scanner.nextLine().trim();
+    }
+
+    public void showWelcomeMessage(String playerName) {
+        System.out.println("====" + playerName + ", Bienvenido de vuelta al juego de Buscaminas ====");
+    }
+
+    public void showVictoryMessage(String playerName) {
+        System.out.println("==== ¡Felicidades, " + playerName + "! Has ganado el juego. ====");
+    }
+
+    public void showGameOverMessage(String playerName) {
+        System.out.println("==== ¡Boom! Lo siento, " + playerName + ", has pisado una mina. ¡Juego terminado! ====");
+    }
+
+    public void showEndGameMessage(String playerName) {
+        System.out.println("==== Gracias por jugar, " + playerName + ". ====");
+    }
+
     public void showWelcomeMessage() {
         System.out.println("==== Bienvenido al juego de Buscaminas ====");
     }
@@ -13,8 +34,8 @@ public class GameView {
         System.out.println("\nBanderas usadas: " + flagsUsed + "/" + totalMines);
     }
 
-    public String promptAction() {
-        System.out.println("¿Qué deseas hacer? (V para revelar, F para marcar/desmarcar): ");
+    public String promptAction(String playerName) {
+        System.out.println("¿Qué deseas hacer " + playerName + "? (V para revelar, F para marcar/desmarcar): ");
         return scanner.nextLine().trim().toUpperCase();
     }
 
@@ -23,8 +44,8 @@ public class GameView {
         return scanner.nextLine();
     }
 
-    public int promptForRows() {
-        System.out.print("Ingresa el número de filas: ");
+    public int promptForRows(String playerName) {
+        System.out.print(playerName + ", ingresa el número de filas: ");
         return scanner.nextInt();
     }
 
@@ -33,13 +54,13 @@ public class GameView {
         return scanner.nextInt();
     }
 
-    public int promptForMines(int rows, int columns) {
+    public int promptForMines(String playerName, int rows, int columns) {
         int totalMines;
         do {
             System.out.print("Ingresa el número total de minas: ");
             totalMines = scanner.nextInt();
             if (totalMines >= rows * columns) {
-                System.out.println("**** Número de minas inválido. Intenta de nuevo. ****");
+                System.out.println("**** Número de minas inválido. Intenta de nuevo " + playerName + ". ****");
             }
         } while (totalMines >= rows * columns);
         scanner.nextLine(); // Consumir salto de línea
@@ -62,11 +83,11 @@ public class GameView {
         System.out.println("***** No puedes marcar ni desmarcar una casilla que ya está revelada. *****");
     }
 
-    public void showFlaggedMessage() {
+    public void showFlaggedMessage(String playerName) {
         System.out.println("** La casilla ha sido marcada. **");
     }
 
-    public void showUnflaggedMessage() {
+    public void showUnflaggedMessage(String playerName) {
         System.out.println("** La casilla ha sido desmarcada. **");
     }
 
@@ -74,23 +95,13 @@ public class GameView {
         System.out.println("**** Ya has usado todas tus banderas. No puedes marcar más casillas. ****");
     }
 
-    public void showVictoryMessage() {
-        System.out.println("==== ¡Felicidades! Has ganado el juego. ====");
-    }
-
-    public void showGameOverMessage() {
-        System.out.println("==== ¡Boom! Has pisado una mina. ¡Juego terminado! ====");
-    }
-
-    public void showEndGameMessage() {
-        System.out.println("==== Gracias por jugar. ====");
-    }
-
     public static int[] parseCoordinates(String position) {
-        if (position.length() < 2) return null;
+        if (position.length() < 2)
+            return null;
 
         char rowChar = position.toUpperCase().charAt(0);
-        if (rowChar < 'A' || rowChar > 'Z') return null;
+        if (rowChar < 'A' || rowChar > 'Z')
+            return null;
 
         String colString = position.substring(1);
         int column;
@@ -101,6 +112,6 @@ public class GameView {
         }
 
         int row = rowChar - 'A';
-        return new int[]{row, column};
+        return new int[] { row, column };
     }
 }

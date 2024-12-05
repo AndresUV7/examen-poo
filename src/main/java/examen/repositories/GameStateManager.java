@@ -8,6 +8,7 @@ import examen.models.Box;
 import examen.models.EmptyBox;
 import examen.models.Game;
 import examen.models.MinedBox;
+import examen.models.Player;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -27,21 +28,23 @@ public class GameStateManager {
         try (CSVWriter writer = new CSVWriter(new FileWriter(GAME_STATE_FILEPATH))) {
             Board board = game.getBoard();
             int flagCount = game.getFlagCount();
+            String playerName = game.getPlayer().getName();
 
             // Guardar metadatos del juego
-            writer.writeNext(new String[]{"Rows", String.valueOf(board.getRows())});
-            writer.writeNext(new String[]{"Columns", String.valueOf(board.getColumns())});
-            writer.writeNext(new String[]{"TotalMines", String.valueOf(board.getTotalMines())});
-            writer.writeNext(new String[]{"FlagCount", String.valueOf(flagCount)});
+            writer.writeNext(new String[] { "PlayerName", playerName });
+            writer.writeNext(new String[] { "Rows", String.valueOf(board.getRows()) });
+            writer.writeNext(new String[] { "Columns", String.valueOf(board.getColumns()) });
+            writer.writeNext(new String[] { "TotalMines", String.valueOf(board.getTotalMines()) });
+            writer.writeNext(new String[] { "FlagCount", String.valueOf(flagCount) });
 
             // Guardar ubicaciones de minas
             List<String[]> mineLocations = new ArrayList<>();
-            mineLocations.add(new String[]{"MineLocation"});
+            mineLocations.add(new String[] { "MineLocation" });
             Box[][] boxes = board.getBoxes();
             for (int row = 0; row < boxes.length; row++) {
                 for (int col = 0; col < boxes[row].length; col++) {
                     if (boxes[row][col].isMine()) {
-                        mineLocations.add(new String[]{
+                        mineLocations.add(new String[] {
                                 String.valueOf((char) ('A' + row)),
                                 String.valueOf(col + 1)
                         });
@@ -66,7 +69,8 @@ public class GameStateManager {
                 for (int col = 0; col < boxes[row].length; col++) {
                     Box box = boxes[row][col];
                     if (box.isRevealed()) {
-                        rowData[col + 1] = box instanceof MinedBox ? "X" : String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
+                        rowData[col + 1] = box instanceof MinedBox ? "X"
+                                : String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
                     } else if (box.isFlagged()) {
                         rowData[col + 1] = "F";
                     } else {
@@ -85,17 +89,19 @@ public class GameStateManager {
     /**
      * Carga el estado del juego desde un archivo CSV.
      *
-     * @return GameLoadResult conteniendo el juego y el número de banderas, o null si no hay estado guardado.
+     * @return GameLoadResult conteniendo el juego y el número de banderas, o null
+     *         si no hay estado guardado.
      */
     public static GameLoadResult loadGameState() {
         try (CSVReader reader = new CSVReader(new FileReader(GAME_STATE_FILEPATH))) {
             List<String[]> savedState = reader.readAll();
 
             // Extraer metadatos
-            int rows = Integer.parseInt(savedState.get(0)[1]);
-            int columns = Integer.parseInt(savedState.get(1)[1]);
-            int totalMines = Integer.parseInt(savedState.get(2)[1]);
-            int flagCount = Integer.parseInt(savedState.get(3)[1]);
+            String playerName = savedState.get(0)[1];
+            int rows = Integer.parseInt(savedState.get(1)[1]);
+            int columns = Integer.parseInt(savedState.get(2)[1]);
+            int totalMines = Integer.parseInt(savedState.get(3)[1]);
+            int flagCount = Integer.parseInt(savedState.get(4)[1]);
 
             // Crear y configurar el tablero
             Board board = Board.builder()
@@ -104,9 +110,10 @@ public class GameStateManager {
                     .totalMines(totalMines)
                     .build();
             board.initializeEmptyBoard();
+            System.out.println("aqui");
 
             // Restaurar ubicaciones de minas
-            int minesStartIndex = 5; // Después de los metadatos y encabezado "MineLocation"
+            int minesStartIndex = 6; // Después de los metadatos y encabezado "MineLocation"
             int mineCount = 0;
             while (mineCount < totalMines && minesStartIndex + mineCount < savedState.size()) {
                 String[] mineLocation = savedState.get(minesStartIndex + mineCount);
@@ -140,7 +147,8 @@ public class GameStateManager {
                             board.getBoxes()[boardRow][boardCol] = box;
                         }
                         case "F" -> box.setFlagged(true);
-                        case "?" -> { /* No revelada */ }
+                        case "?" -> {
+                            /* No revelada */ }
                         default -> {
                             try {
                                 int adjacentMines = Integer.parseInt(cellData);
@@ -157,10 +165,10 @@ public class GameStateManager {
             }
 
             board.calculateAdjacentMines();
-            Game game = Game.builder().board(board).build();
+            Player player = Player.builder().name(playerName).build();
+            Game game = Game.builder().board(board).player(player).build();
             return new GameLoadResult(game, flagCount);
         } catch (IOException | CsvException e) {
-            System.out.println("**** No se encontró estado de juego guardado o hubo un error al cargarlo. ****");
             return null;
         }
     }

@@ -3,6 +3,7 @@ package examen.controllers;
 import examen.models.Board;
 import examen.models.Game;
 import examen.models.MinedBox;
+import examen.models.Player;
 import examen.repositories.GameStateManager;
 import examen.views.GameView;
 
@@ -17,7 +18,6 @@ public class GameController {
         this.gameOver = false;
     }
 
-
     public void setGame(Game game) {
         this.game = game;
     }
@@ -26,7 +26,8 @@ public class GameController {
         GameStateManager.GameLoadResult loadedGame = GameStateManager.loadGameState();
         if (loadedGame != null) {
             this.game = loadedGame.getGame();
-            view.showWelcomeMessage();
+            view.showWelcomeMessage(game.getPlayer().getName());
+
             System.out.println("==== Juego anterior cargado. ====");
             return true;
         }
@@ -35,13 +36,16 @@ public class GameController {
 
     public void initializeGame() {
         if (!loadGame()) {
-            int rows = view.promptForRows();
+            view.showWelcomeMessage();
+            String playerName = view.promptPlayerName();
+            int rows = view.promptForRows(playerName);
             int columns = view.promptForColumns();
-            int totalMines = view.promptForMines(rows, columns);
+            int totalMines = view.promptForMines(playerName, rows, columns);
 
             Board board = Board.builder().rows(rows).columns(columns).totalMines(totalMines).build();
             board.generateBoard();
-            setGame(Game.builder().board(board).build());
+            setGame(Game.builder().board(board).player(Player.builder().name(playerName).build()).build());
+            saveGame();
         }
     }
 
@@ -54,12 +58,12 @@ public class GameController {
     }
 
     public void start() {
-        view.showWelcomeMessage();
+        String playerName = game.getPlayer().getName();
         game.printBoard();
 
         while (!gameOver) {
             view.showFlagCount(game.getFlagCount(), game.getBoard().getTotalMines());
-            String action = view.promptAction();
+            String action = view.promptAction(playerName);
 
             switch (action) {
                 case "V":
@@ -74,10 +78,11 @@ public class GameController {
             }
         }
 
-        view.showEndGameMessage();
+        view.showEndGameMessage(playerName);
     }
 
     private void handleRevealAction() {
+        String playerName = game.getPlayer().getName();
         String position = view.promptPosition("revelar");
         int[] coords = GameView.parseCoordinates(position);
 
@@ -92,7 +97,7 @@ public class GameController {
         if (game.getBoard().getBoxes()[row][col].isRevealed()) {
             view.showAlreadyRevealedMessage();
         } else if (game.getBoard().getBoxes()[row][col] instanceof MinedBox) {
-            view.showGameOverMessage();
+            view.showGameOverMessage(playerName);
             game.revealAllBoxes();
             game.printBoard();
             gameOver = true;
@@ -103,7 +108,7 @@ public class GameController {
             saveGame();
 
             if (isGameWon()) {
-                view.showVictoryMessage();
+                view.showVictoryMessage(playerName);
                 game.revealAllBoxes();
                 game.printBoard();
                 gameOver = true;
@@ -131,12 +136,12 @@ public class GameController {
             if (box.isFlagged()) {
                 box.setFlagged(false);
                 game.decreaseFlagCount();
-                view.showUnflaggedMessage();
+                view.showUnflaggedMessage(game.getPlayer().getName());
             } else {
                 if (game.getFlagCount() < game.getBoard().getTotalMines()) {
                     box.setFlagged(true);
                     game.increaseFlagCount();
-                    view.showFlaggedMessage();
+                    view.showFlaggedMessage(game.getPlayer().getName());
                 } else {
                     view.showNoFlagsLeftMessage();
                 }
