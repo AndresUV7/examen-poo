@@ -51,4 +51,9 @@ public class Game implements IBoardManipulation {
     public void printDetailedBoard() {
         renderer.printDetailedBoard(board);
     }
+
+    public void setGameOver(boolean b) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setGameOver'");
+    }
 }
