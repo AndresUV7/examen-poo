@@ -1,86 +1,33 @@
 package examen.models;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import examen.models.GameInterfaces.IBoardManipulation;
+import examen.models.GameInterfaces.IBoardRenderer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Builder
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class Game {
+public class Game implements IBoardManipulation {
     private Board board;
     private Player player;
+    
+    @Builder.Default
+    private IBoardRenderer renderer = new StandardBoardRenderer(new DefaultBoxDisplayStrategy());
 
-    public void printBoard() {
-        // Generar etiquetas de columnas (números)
-        String columnLabels = IntStream.range(1, board.getColumns() + 1)
-                .mapToObj(String::valueOf)
-                .collect(Collectors.joining(" ", "  ", "\n"));
-        System.out.print(columnLabels);
-
-        // Imprimir tablero con etiquetas de filas (letras)
-        IntStream.range(0, board.getRows())
-                .mapToObj(row -> {
-                    // Convertir cada fila a su representación con etiqueta de fila
-                    String rowRepresentation = Arrays.stream(board.getBoxes()[row])
-                            .map(this::getBoxRepresentation)
-                            .collect(Collectors.joining(" "));
-                    return String.format("%c %s\n", 'A' + row, rowRepresentation);
-                })
-                .forEach(System.out::print);
-    }
-
-    public void printBoardAux() {
-        // Generar etiquetas de columnas (números)
-        String columnLabels = IntStream.range(1, board.getColumns() + 1)
-                .mapToObj(String::valueOf)
-                .collect(Collectors.joining(" ", "  ", "\n"));
-        System.out.print(columnLabels);
-
-        // Imprimir tablero con etiquetas de filas (letras)
-        IntStream.range(0, board.getRows())
-                .mapToObj(row -> {
-                    // Convertir cada fila a su representación detallada con etiqueta de fila
-                    String rowRepresentation = Arrays.stream(board.getBoxes()[row])
-                            .map(this::getDetailedBoxRepresentation)
-                            .collect(Collectors.joining(" "));
-                    return String.format("%c %s\n", 'A' + row, rowRepresentation);
-                })
-                .forEach(System.out::print);
-    }
-
-    private String getBoxRepresentation(Box box) {
-        if (box.isRevealed()) {
-            return box instanceof MinedBox ? "X" : String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
-        } else if (box.isFlagged()) {
-            return "F";
-        }
-        return "?";
-    }
-
-    private String getDetailedBoxRepresentation(Box box) {
-        if (box.isRevealed()) {
-            if (box instanceof MinedBox) {
-                return "X"; // Mina revelada
-            } else {
-                return String.valueOf(((EmptyBox) box).getAdjacentMinesCount());
-            }
-        } else if (box.isFlagged()) {
-            return "F"; // Casilla marcada
-        }
-        return "?"; // Casilla no revelada
-    }
-
+    @Override
     public void revealAllBoxes() {
         Arrays.stream(board.getBoxes())
                 .flatMap(Arrays::stream)
                 .forEach(Box::reveal);
     }
 
+    @Override
     public int revealAdjacent(int row, int col) {
         return board.revealAdjacent(row, col);
     }
@@ -95,5 +42,13 @@ public class Game {
     
     public void decreaseFlagCount() {
         board.setFlagCount(board.getFlagCount() - 1);
+    }
+
+    public void printBoard() {
+        renderer.printBoard(board);
+    }
+
+    public void printDetailedBoard() {
+        renderer.printDetailedBoard(board);
     }
 }

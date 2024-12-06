@@ -36,7 +36,7 @@ public class GameController {
 
     public void initializeGame() {
         if (!loadGame()) {
-            view.showWelcomeMessage();
+            view._showWelcomeMessage();
             String playerName = view.promptPlayerName();
             int rows = view.promptForRows(playerName);
             int columns = view.promptForColumns();
