@@ -1,6 +1,9 @@
 package examen.controllers;
 
+import examen.exceptions.BoardException;
+import examen.exceptions.GameActionException;
 import examen.models.Board;
+import examen.models.Box;
 import examen.models.Game;
 import examen.models.MinedBox;
 import examen.models.Player;
@@ -69,6 +72,7 @@ public class GameController {
             saveGame();
         }
     }
+    
 
     private void saveGame() {
         if (gamePersistenceManager == null) {
@@ -92,16 +96,22 @@ public class GameController {
             view.showFlagCount(game.getFlagCount(), game.getBoard().getTotalMines());
             String action = view.promptAction(playerName);
 
-            switch (action) {
-                case "V":
-                    handleRevealAction();
-                    break;
-                case "F":
-                    handleFlagAction();
-                    break;
-                default:
-                    view.showInvalidActionMessage();
-                    break;
+            try {
+                switch (action) {
+                    case "V":
+                        handleRevealAction();
+                        break;
+                    case "F":
+                        handleFlagAction();
+                        break;
+                    default:
+                        view.showInvalidActionMessage();
+                        break;
+                }
+            } catch (GameActionException e) {
+                view.showErrorMessage(e.getMessage());  // Mostrar el mensaje de error de la excepción
+            } catch (BoardException e) {
+                view.showErrorMessage(e.getMessage());  // Mostrar el mensaje de error de la excepción
             }
         }
 
@@ -114,21 +124,26 @@ public class GameController {
         int[] coords = GameView.parseCoordinates(position);
 
         if (coords == null) {
-            view.showInvalidPositionMessage();
-            return;
+            throw new GameActionException("Coordenadas inválidas proporcionadas.");
         }
 
         int row = coords[0];
         int col = coords[1];
 
+        // Verifica si las coordenadas están dentro de los límites del tablero
+        if (row < 0 || row >= game.getBoard().getRows() || col < 0 || col >= game.getBoard().getColumns()) {
+            throw new GameActionException("**** MOVIMIENTO INVALIDO ****" + System.lineSeparator() + "**** LA COORDENADA INGRESADA NO EXISTE. ****");
+        }
+
         if (game.getBoard().getBoxes()[row][col].isRevealed()) {
-            view.showAlreadyRevealedMessage();
+            throw new GameActionException("La celda ya ha sido revelada.");
         } else if (game.getBoard().getBoxes()[row][col] instanceof MinedBox) {
             view.showGameOverMessage(playerName);
             game.revealAllBoxes();
             game.printBoard();
             gameOver = true;
             clearGame();
+            throw new GameActionException("¡BOOM! " + System.lineSeparator() + " ¡JUEGO TERMINADO HAS SALIDO VOLANDO! ");
         } else {
             game.revealAdjacent(row, col);
             game.printBoard();
@@ -142,6 +157,7 @@ public class GameController {
                 clearGame();
             }
         }
+        System.out.println("X => MINAS");
     }
 
     private void handleFlagAction() {
@@ -184,5 +200,19 @@ public class GameController {
 
     public void setGame(Game game) {
         this.game = game;
+    }
+
+    public void processPlayerMove(int row, int col) {
+        if (row < 0 || row >= game.getBoard().getRows() || col < 0 || col >= game.getBoard().getColumns()) {
+        }
+
+        Box box = game.getBoard().getBoxes()[row][col];
+        if (box.isRevealed()) {
+        }
+
+        box.reveal();
+        if (box instanceof MinedBox && ((MinedBox) box).isMine()) {
+            game.setGameOver(true);
+        }
     }
 }

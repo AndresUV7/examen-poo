@@ -13,6 +13,11 @@ public class GameView implements MessageView, InputView {
         this.scanner = scanner;
     }
 
+    // Validación de excepciones GameControllerException
+    public void showErrorMessage(String message) {
+        System.out.println("ERROR: " + message);
+    }
+
     // Implementación de los métodos de InputView
     @Override
     public String promptAction(String playerName) {
@@ -71,7 +76,7 @@ public class GameView implements MessageView, InputView {
 
     @Override
     public void showGameOverMessage(String playerName) {
-        System.out.println("==== ¡Boom! Lo siento " + playerName + ", has pisado una mina. ¡Juego terminado! ====");
+        System.out.println("¡BOOM!" + System.lineSeparator() +" ¡JUEGO TERMINADO HAS SALIDO VOLANDO! " + playerName);
     }
 
     @Override
@@ -96,12 +101,12 @@ public class GameView implements MessageView, InputView {
 
     @Override
     public void showInvalidPositionMessage() {
-        System.out.println("*** Coordenada inválida. Inténtalo de nuevo. ***");
+        System.out.println("**** MOVIMIENTO INVALIDO ****" + System.lineSeparator() + "**** LA COORDENADA INGRESADA NO EXISTE. ****");
     }
 
     @Override
     public void showAlreadyRevealedMessage() {
-        System.out.println("**** Esta casilla ya está revelada. No puedes revelarla nuevamente. ****");
+        System.out.println("**** MOVIMIENTO INVALIDO ****" + System.lineSeparator() + "**** LA CELDA YA ESTÁ REVELADA. ****");
     }
 
     @Override
