@@ -22,7 +22,7 @@ public class AdjacentMineCalculator implements IAdjacentMineCalculator {
                         }));
     }
 
-    private int countAdjacentMinesRecursive(Box[][] boxes, int row, int col, boolean[][] visited) {
+    public int countAdjacentMinesRecursive(Box[][] boxes, int row, int col, boolean[][] visited) {
         int rows = boxes.length;
         int columns = boxes[0].length;
 
@@ -48,7 +48,7 @@ public class AdjacentMineCalculator implements IAdjacentMineCalculator {
                 .count();
     }
 
-    private boolean isValidPosition(int row, int col, int rows, int columns) {
+    public boolean isValidPosition(int row, int col, int rows, int columns) {
         return row >= 0 && row < rows && col >= 0 && col < columns;
     }
 }

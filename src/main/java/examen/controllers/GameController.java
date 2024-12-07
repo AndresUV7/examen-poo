@@ -4,12 +4,14 @@ import examen.models.Board;
 import examen.models.Game;
 import examen.models.MinedBox;
 import examen.models.Player;
-import examen.repositories.GameStateManager;
+import examen.repositories.GamePersistenceInterface;
+import examen.repositories.GamePersistenceInterface.IGameLoadResult;
 import examen.views.GameView;
 
 public class GameController {
     private Game game;
     private final GameView view;
+    private GamePersistenceInterface gamePersistenceManager;
     private boolean gameOver;
 
     public GameController(Game game, GameView view) {
@@ -18,16 +20,21 @@ public class GameController {
         this.gameOver = false;
     }
 
-    public void setGame(Game game) {
-        this.game = game;
+    public void setGamePersistenceManager(examen.repositories.GamePersistenceInterface gamePersistenceManager) {
+        this.gamePersistenceManager = gamePersistenceManager;
     }
 
     public boolean loadGame() {
-        GameStateManager.GameLoadResult loadedGame = GameStateManager.loadGameState();
+        if (gamePersistenceManager == null) {
+            throw new IllegalStateException("GamePersistenceManager is not set");
+        }
+
+        IGameLoadResult loadedGame = 
+            gamePersistenceManager.loadGameState();
+        
         if (loadedGame != null) {
             this.game = loadedGame.getGame();
             view.showWelcomeMessage(game.getPlayer().getName());
-
             System.out.println("==== Juego anterior cargado. ====");
             return true;
         }
@@ -35,6 +42,10 @@ public class GameController {
     }
 
     public void initializeGame() {
+        if (gamePersistenceManager == null) {
+            throw new IllegalStateException("GamePersistenceManager is not set");
+        }
+
         if (!loadGame()) {
             view._showWelcomeMessage();
             String playerName = view.promptPlayerName();
@@ -42,19 +53,35 @@ public class GameController {
             int columns = view.promptForColumns();
             int totalMines = view.promptForMines(playerName, rows, columns);
 
-            Board board = Board.builder().rows(rows).columns(columns).totalMines(totalMines).build();
+            Board board = Board.builder()
+                .rows(rows)
+                .columns(columns)
+                .totalMines(totalMines)
+                .build();
             board.generateBoard();
-            setGame(Game.builder().board(board).player(Player.builder().name(playerName).build()).build());
+            
+            setGame(
+                Game.builder()
+                    .board(board)
+                    .player(Player.builder().name(playerName).build())
+                    .build()
+            );
             saveGame();
         }
     }
 
     private void saveGame() {
-        GameStateManager.saveGameState(game);
+        if (gamePersistenceManager == null) {
+            throw new IllegalStateException("GamePersistenceManager is not set");
+        }
+        gamePersistenceManager.saveGameState(game);
     }
 
     private void clearGame() {
-        GameStateManager.clearGameState();
+        if (gamePersistenceManager == null) {
+            throw new IllegalStateException("GamePersistenceManager is not set");
+        }
+        gamePersistenceManager.clearGameState();
     }
 
     public void start() {
@@ -153,5 +180,9 @@ public class GameController {
 
     private boolean isGameWon() {
         return game.getBoard().allNonMinedBoxesRevealed();
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
     }
 }
