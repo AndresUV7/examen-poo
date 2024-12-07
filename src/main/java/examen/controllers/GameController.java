@@ -83,7 +83,7 @@ public class GameController {
                     
                     // Validación para asegurarse que filas y columnas son mayores a 1
                     if (rows <= 2 || columns <= 2) {
-                        throw new BoardException("**** EL NÚMERO DE FILAS Y COLUMNAS DEBE SER MAYOR QUE 1. ****");
+                        throw new BoardException("**** EL NÚMERO DE FILAS Y COLUMNAS DEBE SER MAYOR QUE 2 NO PUDE SER IGUAL. ****");
                     }
                     
                     validInput = true;  // Si la validación pasa, se termina el bucle
@@ -102,7 +102,7 @@ public class GameController {
                     
                     // Validación para asegurarse que las minas no superen el total de celdas
                     if (totalMines >= rows * columns) {
-                        throw new BoardException("El número de minas no puede ser mayor o igual al número total de celdas.");
+                        throw new BoardException("EL NÚMERO DE MINAS NO PUEDE SER MAYOR O IGUAL AL NÚMERO TOTAL DE CELDAS.");
                     }
                     
                     validMinesInput = true;  // Si la validación pasa, se termina el bucle
