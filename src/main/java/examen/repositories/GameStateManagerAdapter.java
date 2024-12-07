@@ -5,7 +5,7 @@ import examen.models.Game;
 public class GameStateManagerAdapter implements GamePersistenceInterface {
     @Override
     public IGameLoadResult loadGameState() {
-        // Convert GameStateManager's GameLoadResult to the interface's GameLoadResult
+        // Convertir el GameLoadResult de GameStateManager al resultado de la interfaz
         GameStateManager.GameLoadResult managerResult = GameStateManager.loadGameState();
         
         if (managerResult == null) {

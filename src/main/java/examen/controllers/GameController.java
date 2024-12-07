@@ -11,30 +11,47 @@ import examen.repositories.GamePersistenceInterface;
 import examen.repositories.GamePersistenceInterface.IGameLoadResult;
 import examen.views.GameView;
 
+/**
+ * Controlador principal para manejar la lógica del juego.
+ */
 public class GameController {
     private Game game;
     private final GameView view;
     private GamePersistenceInterface gamePersistenceManager;
     private boolean gameOver;
 
+    /**
+     * Constructor del controlador del juego.
+     *
+     * @param game Juego actual.
+     * @param view Vista para interactuar con el jugador.
+     */
     public GameController(Game game, GameView view) {
         this.game = game;
         this.view = view;
         this.gameOver = false;
     }
 
-    public void setGamePersistenceManager(examen.repositories.GamePersistenceInterface gamePersistenceManager) {
+    /**
+     * Configura el gestor de persistencia del juego.
+     *
+     * @param gamePersistenceManager Gestor de persistencia.
+     */
+    public void setGamePersistenceManager(GamePersistenceInterface gamePersistenceManager) {
         this.gamePersistenceManager = gamePersistenceManager;
     }
 
+    /**
+     * Carga un juego guardado si existe.
+     *
+     * @return Verdadero si el juego fue cargado, falso en caso contrario.
+     */
     public boolean loadGame() {
         if (gamePersistenceManager == null) {
             throw new IllegalStateException("GamePersistenceManager is not set");
         }
 
-        IGameLoadResult loadedGame = 
-            gamePersistenceManager.loadGameState();
-        
+        IGameLoadResult loadedGame = gamePersistenceManager.loadGameState();
         if (loadedGame != null) {
             this.game = loadedGame.getGame();
             view.showWelcomeMessage(game.getPlayer().getName());
@@ -44,6 +61,9 @@ public class GameController {
         return false;
     }
 
+    /**
+     * Inicializa un nuevo juego si no se carga uno existente.
+     */
     public void initializeGame() {
         if (gamePersistenceManager == null) {
             throw new IllegalStateException("GamePersistenceManager is not set");
@@ -52,9 +72,44 @@ public class GameController {
         if (!loadGame()) {
             view._showWelcomeMessage();
             String playerName = view.promptPlayerName();
-            int rows = view.promptForRows(playerName);
-            int columns = view.promptForColumns();
-            int totalMines = view.promptForMines(playerName, rows, columns);
+            int rows = 0;
+            int columns = 0;
+            boolean validInput = false;
+    
+            while (!validInput) {
+                try {
+                    rows = view.promptForRows(playerName);
+                    columns = view.promptForColumns();
+                    
+                    // Validación para asegurarse que filas y columnas son mayores a 1
+                    if (rows <= 2 || columns <= 2) {
+                        throw new BoardException("**** EL NÚMERO DE FILAS Y COLUMNAS DEBE SER MAYOR QUE 1. ****");
+                    }
+                    
+                    validInput = true;  // Si la validación pasa, se termina el bucle
+                } catch (BoardException e) {
+                    view.showErrorMessage(e.getMessage());  // Mostrar mensaje de error y repetir el ingreso
+                }
+            }
+    
+            // Ingresar minas
+            int totalMines = 0;
+            boolean validMinesInput = false;
+            
+            while (!validMinesInput) {
+                try {
+                    totalMines = view.promptForMines(playerName, rows, columns);
+                    
+                    // Validación para asegurarse que las minas no superen el total de celdas
+                    if (totalMines >= rows * columns) {
+                        throw new BoardException("El número de minas no puede ser mayor o igual al número total de celdas.");
+                    }
+                    
+                    validMinesInput = true;  // Si la validación pasa, se termina el bucle
+                } catch (BoardException e) {
+                    view.showErrorMessage(e.getMessage());  // Mostrar mensaje de error y repetir el ingreso
+                }
+            }
 
             Board board = Board.builder()
                 .rows(rows)
@@ -62,18 +117,18 @@ public class GameController {
                 .totalMines(totalMines)
                 .build();
             board.generateBoard();
-            
-            setGame(
-                Game.builder()
-                    .board(board)
-                    .player(Player.builder().name(playerName).build())
-                    .build()
-            );
+
+            setGame(Game.builder()
+                .board(board)
+                .player(Player.builder().name(playerName).build())
+                .build());
             saveGame();
         }
     }
-    
 
+    /**
+     * Guarda el estado actual del juego.
+     */
     private void saveGame() {
         if (gamePersistenceManager == null) {
             throw new IllegalStateException("GamePersistenceManager is not set");
@@ -81,6 +136,9 @@ public class GameController {
         gamePersistenceManager.saveGameState(game);
     }
 
+    /**
+     * Limpia el estado guardado del juego.
+     */
     private void clearGame() {
         if (gamePersistenceManager == null) {
             throw new IllegalStateException("GamePersistenceManager is not set");
@@ -88,6 +146,9 @@ public class GameController {
         gamePersistenceManager.clearGameState();
     }
 
+    /**
+     * Inicia la ejecución del ciclo principal del juego.
+     */
     public void start() {
         String playerName = game.getPlayer().getName();
         game.printBoard();
@@ -108,18 +169,18 @@ public class GameController {
                         view.showInvalidActionMessage();
                         break;
                 }
-            } catch (GameActionException e) {
-                view.showErrorMessage(e.getMessage());  // Mostrar el mensaje de error de la excepción
-            } catch (BoardException e) {
-                view.showErrorMessage(e.getMessage());  // Mostrar el mensaje de error de la excepción
+            } catch (GameActionException | BoardException e) {
+                view.showErrorMessage(e.getMessage());
             }
         }
 
         view.showEndGameMessage(playerName);
     }
 
+    /**
+     * Maneja la acción de revelar una celda.
+     */
     private void handleRevealAction() {
-        String playerName = game.getPlayer().getName();
         String position = view.promptPosition("revelar");
         int[] coords = GameView.parseCoordinates(position);
 
@@ -130,36 +191,38 @@ public class GameController {
         int row = coords[0];
         int col = coords[1];
 
-        // Verifica si las coordenadas están dentro de los límites del tablero
         if (row < 0 || row >= game.getBoard().getRows() || col < 0 || col >= game.getBoard().getColumns()) {
-            throw new GameActionException("**** MOVIMIENTO INVALIDO ****" + System.lineSeparator() + "**** LA COORDENADA INGRESADA NO EXISTE. ****");
+            throw new GameActionException("Movimiento inválido: coordenada fuera de rango.");
         }
 
-        if (game.getBoard().getBoxes()[row][col].isRevealed()) {
-            throw new GameActionException("La celda ya ha sido revelada.");
-        } else if (game.getBoard().getBoxes()[row][col] instanceof MinedBox) {
-            view.showGameOverMessage(playerName);
+        Box box = game.getBoard().getBoxes()[row][col];
+        if (box.isRevealed()) {
+            throw new GameActionException("La celda ya está revelada.");
+        } else if (box instanceof MinedBox) {
+            view.showGameOverMessage(game.getPlayer().getName());
             game.revealAllBoxes();
             game.printBoard();
             gameOver = true;
             clearGame();
-            throw new GameActionException("¡BOOM! " + System.lineSeparator() + " ¡JUEGO TERMINADO HAS SALIDO VOLANDO! ");
+            throw new GameActionException("¡BOOM! Juego terminado.");
         } else {
             game.revealAdjacent(row, col);
             game.printBoard();
             saveGame();
 
             if (isGameWon()) {
-                view.showVictoryMessage(playerName);
+                view.showVictoryMessage(game.getPlayer().getName());
                 game.revealAllBoxes();
                 game.printBoard();
                 gameOver = true;
                 clearGame();
             }
         }
-        System.out.println("X => MINAS");
     }
 
+    /**
+     * Maneja la acción de marcar o desmarcar una celda con una bandera.
+     */
     private void handleFlagAction() {
         String position = view.promptPosition("marcar/desmarcar");
         int[] coords = GameView.parseCoordinates(position);
@@ -172,7 +235,7 @@ public class GameController {
         int row = coords[0];
         int col = coords[1];
 
-        var box = game.getBoard().getBoxes()[row][col];
+        Box box = game.getBoard().getBoxes()[row][col];
         if (box.isRevealed()) {
             view.showCannotFlagRevealedMessage();
         } else {
@@ -194,25 +257,37 @@ public class GameController {
         }
     }
 
+    /**
+     * Verifica si el jugador ha ganado el juego.
+     *
+     * @return Verdadero si todas las casillas no minadas han sido reveladas.
+     */
     private boolean isGameWon() {
         return game.getBoard().allNonMinedBoxesRevealed();
     }
 
+    /**
+     * Actualiza el juego actual.
+     *
+     * @param game Nuevo estado del juego.
+     */
     public void setGame(Game game) {
         this.game = game;
     }
 
+    /**
+     * Procesa un movimiento del jugador.
+     *
+     * @param row Fila seleccionada.
+     * @param col Columna seleccionada.
+     */
     public void processPlayerMove(int row, int col) {
-        if (row < 0 || row >= game.getBoard().getRows() || col < 0 || col >= game.getBoard().getColumns()) {
-        }
-
         Box box = game.getBoard().getBoxes()[row][col];
-        if (box.isRevealed()) {
-        }
-
-        box.reveal();
-        if (box instanceof MinedBox && ((MinedBox) box).isMine()) {
-            game.setGameOver(true);
+        if (!box.isRevealed()) {
+            box.reveal();
+            if (box instanceof MinedBox) {
+                game.setGameOver(true);
+            }
         }
     }
 }
