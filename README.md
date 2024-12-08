@@ -5,6 +5,8 @@
 
 ## 🎮 Cómo Jugar
 
+?: Casillas Cubiertas
+
 ### Configuración Inicial
 1. Ingrese su nombre de jugador
 2. Defina el número de filas del tablero
