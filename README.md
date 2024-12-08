@@ -25,16 +25,16 @@
 ### Reglas del Juego
 * Revelar una casilla con mina significa **Game Over**
 
-* ![Juego Perdido](https://drive.google.com/uc?id=123UVelSxuHbpgFXMYy6wwHWBB9QK43YV)
 
+* ![Juego Perdido](https://drive.google.com/uc?id=1B9q9MgU-6gUnhKQcdiMaX3irPZm_8qZx)
 
 * Revelar todas las casillas vacías significa **Victoria**
 
-* ![Juego Ganado](https://drive.google.com/uc?id=1B9q9MgU-6gUnhKQcdiMaX3irPZm_8qZx)
+* ![Juego Ganado](https://drive.google.com/uc?id=1ezPwvdZbyyKFe-J-xrB2rebDRIH8ybQj)
 
 * El progreso se guarda automáticamente
 
-* ![Recuperado de estado guardado](https://drive.google.com/uc?id=1ezPwvdZbyyKFe-J-xrB2rebDRIH8ybQj)
+* ![Recuperado de estado guardado](https://drive.google.com/uc?id=123UVelSxuHbpgFXMYy6wwHWBB9QK43YV)
 
 ## 💾 Funcionalidades Especiales
 * Guardado automático de partida
