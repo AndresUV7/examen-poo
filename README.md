@@ -11,6 +11,8 @@
 3. Establezca el número de columnas
 4. Configure la cantidad de minas
 
+![Configuración del tablero](https://drive.google.com/uc?id=1qlC4LXIAqL7Zq2q7a4QVhxIT5J_FapHs)
+
 ### Comandos de Juego
 * `V`: Revelar casilla
 * `F`: Plantar bandera
